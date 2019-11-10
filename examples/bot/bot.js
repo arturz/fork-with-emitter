@@ -1,6 +1,8 @@
 const { master } = require('../../dist/index')
 
-const sleep = ms => new Promise(res => setTimeout(res, ms))
+//returns promise that resolves after given ms
+const sleep = ms => 
+  new Promise(res => setTimeout(res, ms))
 
 master.on('hello', name => {
   console.log(`Hello ${name}`)

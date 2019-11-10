@@ -1,7 +1,7 @@
 # fork-with-emitter
 
 Simple EventEmitter wrapper for IPC, ehnanced with async .request(). 
-- Zero depencies.
+- Zero dependencies.
 - TypeScript support.
 - Intuitive naming (master/slave).
 
@@ -103,7 +103,7 @@ Hello Artur
   kill()
 
   /*
-    same as exported 'master' methods, but points to slave instead of master
+    Same as exported 'master' methods, but points to slave instead of master.
   */
   on(event, listener),
   emit(event, listener),
