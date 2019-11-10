@@ -1,0 +1,20 @@
+{
+  "name": "fork-with-emitter",
+  "version": "1.0.0",
+  "description": "Improves child_process.fork communication",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "mocha --reporter spec"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^12.12.7",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "mocha": "^6.2.2",
+    "typescript": "^3.7.2"
+  }
+}
