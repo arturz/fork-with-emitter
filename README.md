@@ -1,6 +1,6 @@
 # fork-with-emitter
 
-Simple EventEmitter wrapper for IPC, ehnanced with async .request(). 
+Simple EventEmitter wrapper for IPC, enhanced with async .request(). 
 - Zero dependencies.
 - TypeScript support.
 - Intuitive naming (master/slave).
