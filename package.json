@@ -1,7 +1,7 @@
 {
   "name": "fork-with-emitter",
   "version": "1.0.0",
-  "description": "Improves child_process.fork communication",
+  "description": "Simple EventEmitter wrapper for IPC, ehnanced with async .request(). ",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
