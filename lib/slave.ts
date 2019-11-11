@@ -8,7 +8,7 @@ const events: Events = Object.create(null)
 const responseEmitter = new EventEmitter
 
 export const master = {
-  on(event: string, listener: Function){
+  on(event: string, listener: (payload?: any) => void | Promise<any>){
     if(events[event] === undefined){
       events[event] = [listener]
       return

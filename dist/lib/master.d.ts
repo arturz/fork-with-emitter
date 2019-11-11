@@ -5,7 +5,7 @@ declare class Slave {
     private readonly events;
     private readonly responseEmitter;
     constructor(fork: ChildProcess);
-    on(event: string, listener: Function): void;
+    on(event: string, listener: (payload?: any) => void | Promise<any>): void;
     emit(event: string, payload?: any): void;
     request(event: string, payload?: any, maximumTimeout?: number): Promise<unknown>;
     kill(): void;

@@ -13,7 +13,7 @@ class Slave {
     this.fork.on('message', this.handleMessage)
   }
 
-  public on(event: string, listener: Function){
+  public on(event: string, listener: (payload?: any) => void | Promise<any>){
     if(this.events[event] === undefined){
       this.events[event] = [listener]
       return
