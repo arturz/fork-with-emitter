@@ -9,7 +9,7 @@ Simple EventEmitter wrapper for IPC, ehnanced with async .request().
 
 bot.js (slave):
 ```javascript
-const { master } = require('../../dist/index')
+const { master } = require('fork-with-emitter')
 
 //returns promise that resolves after given ms
 const sleep = ms => 
@@ -27,7 +27,7 @@ master.on('getRandomNumber', async () => {
 
 index.js (master):
 ```javascript
-const { createSlave } = require('../../dist/index')
+const { createSlave } = require('fork-with-emitter')
 
 const bot = createSlave('bot.js', { cwd: __dirname })
 //pipe bot's console.log to master's console.log
