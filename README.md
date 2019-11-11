@@ -29,7 +29,7 @@ index.js (master):
 ```javascript
 const { createSlave } = require('fork-with-emitter')
 
-const bot = createSlave('bot.js', { cwd: __dirname })
+const bot = createSlave('bot.js')
 //pipe bot's console.log to master's console.log
 bot.fork.stdout.pipe(process.stdout)
 
