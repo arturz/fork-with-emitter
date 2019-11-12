@@ -10,11 +10,25 @@
   },
   "author": "",
   "license": "ISC",
+  "keywords": [
+    "childprocess",
+    "child_process",
+    "child-process",
+    "event",
+    "event-emitter",
+    "eventemitter",
+    "events",
+    "fork",
+    "ipc",
+    "process",
+    "processes",
+    "promise"
+  ],
   "devDependencies": {
     "@types/node": "^12.12.7",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "mocha": "^6.2.2",
     "typescript": "^3.7.2"
-  }
+  },
 }
