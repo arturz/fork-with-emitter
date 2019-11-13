@@ -5,15 +5,28 @@ chai.use(require("chai-as-promised"))
 chai.should()
 
 describe('#request()', () => {
-  const slave = createSlave('request.js', { cwd: __dirname })
+  const identityPayload = 'test'
+  const testRequestResult = 'testRequestResult'
 
-  const text = 'test'
-  it(`request('identity', '${text}') should resolve '${text}'`, async () => {
-    const result = await slave.request('identity', text)
-    chai.expect(result).to.equal(text)
+  let slave
+  beforeEach(() => {
+    slave = createSlave('request.js', { cwd: __dirname })
+    slave.on('test', async () => {
+      return testRequestResult
+    })
   })
 
-  it(`request('not_defined_fn', null, 0.5) should be rejected`, done => {
+  it(`slave.request('identity', ${identityPayload}) should resolve ${identityPayload}`, async () => {
+    const result = await slave.request('identity', identityPayload)
+    chai.expect(result).to.equal(identityPayload)
+  })
+
+  it(`slave.request('test') should resolve '${testRequestResult}'`, async () => {
+    const result = await slave.request('test')
+    chai.expect(result).to.equal(testRequestResult)
+  })
+
+  it(`slave.request('not_defined_fn', null, 0.5) should be rejected`, done => {
     slave.request('not_defined_fn', null, 0.5).should.be.rejected.and.notify(done)
   })
 

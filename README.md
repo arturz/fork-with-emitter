@@ -63,7 +63,7 @@ Hello Artur
   */
   master: {
     /*
-      If listener is an async function or returns Promise, resolved data may be passed to master's request.  
+      If listener returns/resolves data, it will be passed to master's request.  
       process.on('message', listener) with events
     */
     on(event, listener),
