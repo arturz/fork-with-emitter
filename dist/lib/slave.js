@@ -38,17 +38,18 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var events_1 = require("events");
 var generateId_1 = require("./utils/generateId");
+var EventsContainer_1 = require("./utils/EventsContainer");
 exports.isSlave = typeof process.send === 'function';
-var events = Object.create(null);
-var responseEmitter = new events_1.EventEmitter;
+var eventsContainer = new EventsContainer_1.default;
+var requestEventsContainer = new EventsContainer_1.default;
+var requestResponseEmitter = new events_1.EventEmitter;
 exports.master = {
-    on: function (event, listener) {
-        if (events[event] === undefined) {
-            events[event] = [listener];
-            return;
-        }
-        events[event].push(listener);
-    },
+    on: eventsContainer.add,
+    once: eventsContainer.addOnce,
+    removeListener: eventsContainer.delete,
+    onRequest: requestEventsContainer.add,
+    onceRequest: requestEventsContainer.addOnce,
+    removeRequestListener: requestEventsContainer.delete,
     emit: function (event, payload) {
         if (process.send)
             process.send({ type: 'emit', event: event, payload: payload });
@@ -64,9 +65,9 @@ exports.master = {
                 resolve(response);
                 clearTimeout(timeoutHandler);
             };
-            responseEmitter.once(id, resolveAndClear);
+            requestResponseEmitter.once(id, resolveAndClear);
             var timeoutHandler = setTimeout(function () {
-                responseEmitter.removeListener(id, resolveAndClear);
+                requestResponseEmitter.removeListener(id, resolveAndClear);
                 reject();
             }, maximumTimeout * 1000);
         });
@@ -82,18 +83,18 @@ if (exports.isSlave) {
                         return [2 /*return*/];
                     type = message.type, event = message.event, payload = message.payload, id = message.id;
                     if (type === 'response') {
-                        responseEmitter.emit(id, payload);
+                        requestResponseEmitter.emit(id, payload);
                         return [2 /*return*/];
                     }
                     if (!(type === 'request' && process.send)) return [3 /*break*/, 2];
-                    return [4 /*yield*/, events[event][0](payload)];
+                    return [4 /*yield*/, requestEventsContainer.get(event)[0](payload)];
                 case 1:
                     response = _a.sent();
                     process.send({ type: 'response', payload: response, id: id });
                     return [2 /*return*/];
                 case 2:
                     if (type === 'emit') {
-                        events[event].forEach(function (fn) { return fn(payload); });
+                        eventsContainer.forEach(event, function (fn) { return fn(payload); });
                     }
                     return [2 /*return*/];
             }

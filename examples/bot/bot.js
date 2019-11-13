@@ -8,7 +8,7 @@ master.on('hello', name => {
   console.log(`Hello ${name}`)
 })
 
-master.on('getRandomNumber', async () => {
+master.onRequest('getRandomNumber', async () => {
   await sleep(1000)
   return Math.floor(Math.random() * 1000)
 })

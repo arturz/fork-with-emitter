@@ -3,23 +3,22 @@ import { EventEmitter } from 'events'
 import { access, constants } from 'fs'
 import { join } from 'path'
 import generateId from './utils/generateId'
-import Events from './types/Events'
+import EventsContainer from './utils/EventsContainer'
 
 class Slave {
-  private readonly events: Events = Object.create(null)
-  private readonly responseEmitter = new EventEmitter
+  private readonly eventsContainer = new EventsContainer
+  private readonly requestEventsContainer = new EventsContainer
+  private readonly requestResponseEmitter = new EventEmitter
+
+  public readonly on = this.eventsContainer.add
+  public readonly once = this.eventsContainer.addOnce
+  public readonly removeListener = this.eventsContainer.delete
+  public readonly onRequest = this.requestEventsContainer.add
+  public readonly onceRequest = this.requestEventsContainer.addOnce
+  public readonly removeRequestListener = this.requestEventsContainer.delete
 
   constructor(public readonly fork: ChildProcess){
     this.fork.on('message', this.handleMessage)
-  }
-
-  public on(event: string, listener: (payload?: any) => void | Promise<any>){
-    if(this.events[event] === undefined){
-      this.events[event] = [listener]
-      return
-    }
-    
-    this.events[event].push(listener)
   }
 
   public emit(event: string, payload?: any){
@@ -35,10 +34,10 @@ class Slave {
         resolve(response)
         clearTimeout(timeoutHandler)
       }
-      this.responseEmitter.once(id, resolveAndClear)
+      this.requestResponseEmitter.once(id, resolveAndClear)
 
       const timeoutHandler = setTimeout(() => {
-        this.responseEmitter.removeListener(id, resolveAndClear)
+        this.requestResponseEmitter.removeListener(id, resolveAndClear)
         reject()
       }, maximumTimeout*1000)
     })
@@ -55,18 +54,18 @@ class Slave {
     const { type, event, payload, id } = message
 
     if(type === 'response'){
-      this.responseEmitter.emit(id, payload)
+      this.requestResponseEmitter.emit(id, payload)
       return
     }
 
     if(type === 'request'){
-      const response = await this.events[event][0](payload)
+      const response = await this.requestEventsContainer.get(event)[0](payload)
       this.fork.send({ type: 'response', payload: response, id })
       return
     }
 
     if(type === 'emit'){
-      this.events[event].forEach(fn => fn(payload))
+      this.eventsContainer.forEach(event, fn => fn(payload))
     }
   }
 }

@@ -41,12 +41,20 @@ var events_1 = require("events");
 var fs_1 = require("fs");
 var path_1 = require("path");
 var generateId_1 = require("./utils/generateId");
+var EventsContainer_1 = require("./utils/EventsContainer");
 var Slave = /** @class */ (function () {
     function Slave(fork) {
         var _this = this;
         this.fork = fork;
-        this.events = Object.create(null);
-        this.responseEmitter = new events_1.EventEmitter;
+        this.eventsContainer = new EventsContainer_1.default;
+        this.requestEventsContainer = new EventsContainer_1.default;
+        this.requestResponseEmitter = new events_1.EventEmitter;
+        this.on = this.eventsContainer.add;
+        this.once = this.eventsContainer.addOnce;
+        this.removeListener = this.eventsContainer.delete;
+        this.onRequest = this.requestEventsContainer.add;
+        this.onceRequest = this.requestEventsContainer.addOnce;
+        this.removeRequestListener = this.requestEventsContainer.delete;
         this.handleMessage = function (message) { return __awaiter(_this, void 0, void 0, function () {
             var type, event, payload, id, response;
             return __generator(this, function (_a) {
@@ -56,18 +64,18 @@ var Slave = /** @class */ (function () {
                             return [2 /*return*/];
                         type = message.type, event = message.event, payload = message.payload, id = message.id;
                         if (type === 'response') {
-                            this.responseEmitter.emit(id, payload);
+                            this.requestResponseEmitter.emit(id, payload);
                             return [2 /*return*/];
                         }
                         if (!(type === 'request')) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.events[event][0](payload)];
+                        return [4 /*yield*/, this.requestEventsContainer.get(event)[0](payload)];
                     case 1:
                         response = _a.sent();
                         this.fork.send({ type: 'response', payload: response, id: id });
                         return [2 /*return*/];
                     case 2:
                         if (type === 'emit') {
-                            this.events[event].forEach(function (fn) { return fn(payload); });
+                            this.eventsContainer.forEach(event, function (fn) { return fn(payload); });
                         }
                         return [2 /*return*/];
                 }
@@ -75,13 +83,6 @@ var Slave = /** @class */ (function () {
         }); };
         this.fork.on('message', this.handleMessage);
     }
-    Slave.prototype.on = function (event, listener) {
-        if (this.events[event] === undefined) {
-            this.events[event] = [listener];
-            return;
-        }
-        this.events[event].push(listener);
-    };
     Slave.prototype.emit = function (event, payload) {
         this.fork.send({ type: 'emit', event: event, payload: payload });
     };
@@ -95,9 +96,9 @@ var Slave = /** @class */ (function () {
                 resolve(response);
                 clearTimeout(timeoutHandler);
             };
-            _this.responseEmitter.once(id, resolveAndClear);
+            _this.requestResponseEmitter.once(id, resolveAndClear);
             var timeoutHandler = setTimeout(function () {
-                _this.responseEmitter.removeListener(id, resolveAndClear);
+                _this.requestResponseEmitter.removeListener(id, resolveAndClear);
                 reject();
             }, maximumTimeout * 1000);
         });

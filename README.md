@@ -19,7 +19,7 @@ master.on('hello', name => {
   console.log(`Hello ${name}`)
 })
 
-master.on('getRandomNumber', async () => {
+master.onRequest('getRandomNumber', async () => {
   await sleep(1000)
   return Math.floor(Math.random() * 1000)
 })
@@ -63,10 +63,16 @@ Hello Artur
   */
   master: {
     /*
-      If listener returns/resolves data, it will be passed to master's request.  
       process.on('message', listener) with events
     */
     on(event, listener),
+
+    /*
+      Listener is removed after execution.
+    */
+    once(event, listener),
+
+    removeListener(event, listener),
 
     /*
       process.send(payload) with events
@@ -74,15 +80,23 @@ Hello Artur
     emit(event, listener),
 
     /*
-      Returns Promise that resolves with data resolved from master's .on() listener.
+      Returned/resolved data from async function will be passed to master's request.  
+    */
+    onRequest(event, listener),
+    onceRequest(event, listener),
+
+    removeRequestListener(event, listener),
+
+    /*
+      Returns Promise that resolves with data resolved from master's .onRequest() listener.
       Rejects if response is not sent after 10 seconds.
     */
     request(event, listener, maximumTimeout = 10)
   },
 
   /*
-    Returns if process is slave/was forked.
-    same as process.send === 'function'
+    Is true when process is slave/was forked, otherwise is false.
+    Same as process.send === 'function'
   */
   isSlave
 }
@@ -93,7 +107,7 @@ Hello Artur
 ```javascript
 {
   /*
-    native ChildProcess object
+    Native ChildProcess object.
   */
   fork = ChildProcess,
 
@@ -106,7 +120,12 @@ Hello Artur
     Same as exported 'master' methods, but points to slave instead of master.
   */
   on(event, listener),
+  once(event, listener),
+  removeListener(event, listener),
   emit(event, listener),
-  request(event, listener, maximumTimeout = 10),
+  onRequest(event, listener),
+  onceRequest(event, listener),
+  removeRequestListener(event, listener),
+  request(event, listener, maximumTimeout = 10)
 }
 ```
