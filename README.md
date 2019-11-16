@@ -49,6 +49,38 @@ Hello Artur
 623
 ```
 
+## Handling rejections
+
+bot.js (slave):
+```javascript
+const { master } = require('fork-with-emitter')
+
+master.on('throwRejection', () => {
+  throw new Error(`Some error message`)
+})
+```
+
+index.js (master):
+```javascript
+const { createSlave } = require('fork-with-emitter')
+
+const bot = createSlave('bot.js')
+
+;(async () => {
+  try {
+    await bot.request('throwRejection')
+  } catch(error) {
+    console.log(error)
+  }
+})()
+```
+
+Output:
+```bash
+Error: Some error message
+    at ...
+```
+
 ## Exports
 ```javascript
 {

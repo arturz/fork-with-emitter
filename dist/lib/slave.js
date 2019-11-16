@@ -89,7 +89,7 @@ exports.master = {
             */
             if (maximumTimeout === Infinity)
                 return;
-            var timeout = setTimeout(clearAndReject, maximumTimeout * 1000);
+            var timeout = setTimeout(function () { return clearAndReject("Request " + event + " was not handled by master"); }, maximumTimeout * 1000);
         });
     }
 };

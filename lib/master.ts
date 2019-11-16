@@ -79,7 +79,7 @@ class Slave {
       if(maximumTimeout === Infinity)
         return
 
-      let timeout: NodeJS.Timeout | null = setTimeout(clearAndReject, maximumTimeout*1000)
+      let timeout: NodeJS.Timeout | null = setTimeout(() => clearAndReject(`Request ${event} was not handled by slave`), maximumTimeout*1000)
     })
   }
 

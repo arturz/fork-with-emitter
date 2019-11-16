@@ -33,6 +33,9 @@ export default class EventsContainer {
   }
 
   public readonly get = (event: string) => {
+    if(this.events[event] === undefined)
+      return []
+      
     return [...this.events[event]]
   }
 

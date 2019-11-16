@@ -66,7 +66,7 @@ export const master = {
       if(maximumTimeout === Infinity)
         return
 
-      let timeout: NodeJS.Timeout | null = setTimeout(clearAndReject, maximumTimeout*1000)
+      let timeout: NodeJS.Timeout | null = setTimeout(() => clearAndReject(`Request ${event} was not handled by master`), maximumTimeout*1000)
     })
   }
 }

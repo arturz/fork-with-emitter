@@ -31,6 +31,8 @@ var EventsContainer = /** @class */ (function () {
             _this.events[event] = _this.events[event].filter(function (fn) { return fn !== handler; });
         };
         this.get = function (event) {
+            if (_this.events[event] === undefined)
+                return [];
             return __spreadArrays(_this.events[event]);
         };
         this.forEach = function (event, fn) {

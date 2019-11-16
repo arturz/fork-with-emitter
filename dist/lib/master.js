@@ -170,7 +170,7 @@ var Slave = /** @class */ (function () {
             */
             if (maximumTimeout === Infinity)
                 return;
-            var timeout = setTimeout(clearAndReject, maximumTimeout * 1000);
+            var timeout = setTimeout(function () { return clearAndReject("Request " + event + " was not handled by slave"); }, maximumTimeout * 1000);
         });
     };
     Slave.prototype.kill = function () {
