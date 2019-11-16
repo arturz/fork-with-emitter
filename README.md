@@ -5,7 +5,9 @@ Simple EventEmitter wrapper for IPC, enhanced with async .request().
 - TypeScript support.
 - Intuitive naming (master/slave).
 
-## Example
+# Examples
+
+## Basic communication
 
 bot.js (slave):
 ```javascript
@@ -44,18 +46,18 @@ bot.emit('hello', 'Artur')
 ```
 
 Output:
-```bash
+```shell
 Hello Artur
 623
 ```
 
-## Handling rejections
+## Errors and rejections
 
 bot.js (slave):
 ```javascript
 const { master } = require('fork-with-emitter')
 
-master.on('throwRejection', () => {
+master.onRequest('throwRejection', async () => {
   throw new Error(`Some error message`)
 })
 ```
@@ -76,12 +78,14 @@ const bot = createSlave('bot.js')
 ```
 
 Output:
-```bash
+```shell
 Error: Some error message
-    at ...
+    at (slave's stack)
 ```
 
-## Exports
+Errors and rejections are handled only from .onRequest() handlers.
+
+# Export
 ```javascript
 {
   /*
