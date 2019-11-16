@@ -1,5 +1,8 @@
-import Events from '../types/Events'
 import Handler from '../types/Handler'
+
+interface Events {
+  [event: string]: Function[]
+}
 
 export default class EventsContainer {
   private readonly events: Events = Object.create(null)

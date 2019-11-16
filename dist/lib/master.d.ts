@@ -2,9 +2,9 @@
 import { ForkOptions, ChildProcess } from 'child_process';
 declare class Slave {
     readonly fork: ChildProcess;
-    private readonly eventsContainer;
-    private readonly requestEventsContainer;
-    private readonly requestResponseEmitter;
+    private eventsContainer;
+    private requestEventsContainer;
+    private requestResolvers;
     readonly on: (event: string, handler: import("./types/Handler").default) => void;
     readonly once: (event: string, fn: import("./types/Handler").default) => void;
     readonly removeListener: (event: string, handler: import("./types/Handler").default) => void;
@@ -12,8 +12,9 @@ declare class Slave {
     readonly onceRequest: (event: string, fn: import("./types/Handler").default) => void;
     readonly removeRequestListener: (event: string, handler: import("./types/Handler").default) => void;
     constructor(fork: ChildProcess);
-    emit(event: string, payload?: any): void;
-    request(event: string, payload?: any, maximumTimeout?: number): Promise<unknown>;
+    private clearAfterExit;
+    emit(event: string, data?: any): void;
+    request(event: string, data?: any, maximumTimeout?: number): Promise<any>;
     kill(): void;
     private handleMessage;
 }

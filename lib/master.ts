@@ -1,14 +1,18 @@
 import { fork, ForkOptions, ChildProcess } from 'child_process'
-import { EventEmitter } from 'events'
 import { access, constants } from 'fs'
 import { join } from 'path'
 import generateId from './utils/generateId'
+import waitForExit from './utils/waitForExit'
 import EventsContainer from './utils/EventsContainer'
+import RequestResolvers from './types/RequestResolvers'
+import Message, { EmitMessage, EmitMessagePayload, RequestMessage, RequestMessagePayload, ResponseMessage, ResponseMessagePayload } from './types/Message'
 
 class Slave {
-  private readonly eventsContainer = new EventsContainer
-  private readonly requestEventsContainer = new EventsContainer
-  private readonly requestResponseEmitter = new EventEmitter
+  private eventsContainer = new EventsContainer
+  private requestEventsContainer = new EventsContainer
+  
+  //if process exits, every request's pending Promise will be rejected
+  private requestResolvers: RequestResolvers = Object.create(null)
 
   public readonly on = this.eventsContainer.add
   public readonly once = this.eventsContainer.addOnce
@@ -19,27 +23,63 @@ class Slave {
 
   constructor(public readonly fork: ChildProcess){
     this.fork.on('message', this.handleMessage)
+    this.clearAfterExit()
   }
 
-  public emit(event: string, payload?: any){
-    this.fork.send({ type: 'emit', event, payload })
+  private async clearAfterExit(){
+    await waitForExit(this.fork)
+    this.eventsContainer = new EventsContainer
+    this.requestEventsContainer = new EventsContainer
+
+    //reject every request
+    Object.values(this.requestResolvers).forEach(({ reject }) => reject(`Slave fork was killed`))
+    this.requestResolvers = Object.create(null)
   }
 
-  public request(event: string, payload?: any, maximumTimeout: number = 10){
+  public emit(event: string, data?: any){
+    this.fork.send({
+      type: 'emit',
+      payload: { event, data }
+    } as EmitMessage)
+  }
+
+  public request(event: string, data?: any, maximumTimeout: number = 10): Promise<any>{
     return new Promise((resolve, reject) => {
       const id = generateId()
-      this.fork.send({ type: 'request', id, event, payload })
 
-      const resolveAndClear = (response: any) => {
-        resolve(response)
-        clearTimeout(timeoutHandler)
+      const clear = () => {
+        if(timeout !== null){
+          clearTimeout()
+          timeout = null
+        }
+        delete this.requestResolvers[id]
       }
-      this.requestResponseEmitter.once(id, resolveAndClear)
 
-      const timeoutHandler = setTimeout(() => {
-        this.requestResponseEmitter.removeListener(id, resolveAndClear)
-        reject()
-      }, maximumTimeout*1000)
+      const clearAndResolve = (data?: any) => {
+        clear()
+        resolve(data)
+      }
+
+      const clearAndReject = (error?: any) => {
+        clear()
+        reject(error)
+      }
+
+      this.requestResolvers[id] = { resolve: clearAndResolve, reject: clearAndReject }
+
+      this.fork.send({
+        type: 'request',
+        payload: { event, data, id }
+      } as RequestMessage)
+
+      /*
+        For very long tasks, not recommended though.
+        If task crashes and forked process still works it will cause a memory leak.
+      */
+      if(maximumTimeout === Infinity)
+        return
+
+      let timeout: NodeJS.Timeout | null = setTimeout(clearAndReject, maximumTimeout*1000)
     })
   }
 
@@ -47,25 +87,49 @@ class Slave {
     this.fork.kill('SIGINT')
   }
 
-  private handleMessage = async (message: any) => {
+  private handleMessage = async (message: Message) => {
     if(typeof message !== 'object')
       return
 
-    const { type, event, payload, id } = message
-
-    if(type === 'response'){
-      this.requestResponseEmitter.emit(id, payload)
+    const { type, payload } = message
+    if(type === 'emit'){
+      const { event, data } = payload as EmitMessagePayload
+      this.eventsContainer.forEach(event, fn => fn(data))
       return
     }
 
     if(type === 'request'){
-      const response = await this.requestEventsContainer.get(event)[0](payload)
-      this.fork.send({ type: 'response', payload: response, id })
-      return
+      const { event, data, id } = payload as RequestMessagePayload
+
+      let responsePayload: ResponseMessagePayload 
+      try {
+        responsePayload = {
+          isRejected: false,
+          data: await this.requestEventsContainer.get(event)[0](data),
+          id
+        }
+      } catch(error) {
+        responsePayload = {
+          isRejected: true,
+          data: error instanceof Error
+            ? error.stack
+            : error.toString(),
+          id
+        }
+      }
+
+      this.fork.send({ type: 'response', payload: responsePayload } as ResponseMessage)
     }
 
-    if(type === 'emit'){
-      this.eventsContainer.forEach(event, fn => fn(payload))
+    if(type === 'response'){
+      const { isRejected, data, id } = payload as ResponseMessagePayload
+
+      if(isRejected){
+        this.requestResolvers[id].reject(data)
+        return
+      }
+
+      this.requestResolvers[id].resolve(data)
     }
   }
 }

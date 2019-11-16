@@ -1,6 +1,6 @@
 {
   "name": "fork-with-emitter",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "Simple EventEmitter wrapper for IPC, enhanced with async .request(). ",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,8 +8,16 @@
     "build": "tsc",
     "test": "mocha --reporter spec"
   },
-  "author": "",
+  "author": "xout",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xout/fork-with-emitter.git"
+  },
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xout/fork-with-emitter/issues"
+  },
+  "homepage":"https://github.com/xout/fork-with-emitter",
   "keywords": [
     "childprocess",
     "child_process",

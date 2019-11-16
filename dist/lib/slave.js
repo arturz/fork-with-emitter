@@ -36,13 +36,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var events_1 = require("events");
 var generateId_1 = require("./utils/generateId");
 var EventsContainer_1 = require("./utils/EventsContainer");
 exports.isSlave = typeof process.send === 'function';
 var eventsContainer = new EventsContainer_1.default;
 var requestEventsContainer = new EventsContainer_1.default;
-var requestResponseEmitter = new events_1.EventEmitter;
+var requestResolvers = Object.create(null);
 exports.master = {
     on: eventsContainer.add,
     once: eventsContainer.addOnce,
@@ -50,51 +49,100 @@ exports.master = {
     onRequest: requestEventsContainer.add,
     onceRequest: requestEventsContainer.addOnce,
     removeRequestListener: requestEventsContainer.delete,
-    emit: function (event, payload) {
-        if (process.send)
-            process.send({ type: 'emit', event: event, payload: payload });
+    emit: function (event, data) {
+        if (!process.send)
+            return;
+        process.send({
+            type: 'emit',
+            payload: { event: event, data: data }
+        });
     },
-    request: function (event, payload, maximumTimeout) {
+    request: function (event, data, maximumTimeout) {
         if (maximumTimeout === void 0) { maximumTimeout = 10; }
         return new Promise(function (resolve, reject) {
             if (!process.send)
                 return;
             var id = generateId_1.default();
-            process.send({ type: 'request', id: id, event: event, payload: payload });
-            var resolveAndClear = function (response) {
-                resolve(response);
-                clearTimeout(timeoutHandler);
+            var clear = function () {
+                if (timeout !== null) {
+                    clearTimeout();
+                    timeout = null;
+                }
+                delete requestResolvers[id];
             };
-            requestResponseEmitter.once(id, resolveAndClear);
-            var timeoutHandler = setTimeout(function () {
-                requestResponseEmitter.removeListener(id, resolveAndClear);
-                reject();
-            }, maximumTimeout * 1000);
+            var clearAndResolve = function (data) {
+                clear();
+                resolve(data);
+            };
+            var clearAndReject = function (error) {
+                clear();
+                reject(error);
+            };
+            requestResolvers[id] = { resolve: clearAndResolve, reject: clearAndResolve };
+            process.send({
+                type: 'request',
+                payload: { event: event, data: data, id: id }
+            });
+            /*
+              For very long tasks, not recommended though.
+              If task crashes and forked process still works it will cause a memory leak.
+            */
+            if (maximumTimeout === Infinity)
+                return;
+            var timeout = setTimeout(clearAndReject, maximumTimeout * 1000);
         });
     }
 };
 if (exports.isSlave) {
     process.on('message', function (message) { return __awaiter(void 0, void 0, void 0, function () {
-        var type, event, payload, id, response;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var type, payload, _a, event_1, data_1, _b, event_2, data, id, responsePayload, _c, error_1, _d, isRejected, data, id;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
                 case 0:
-                    if (typeof message !== 'object')
+                    if (typeof message !== 'object' || !process.send)
                         return [2 /*return*/];
-                    type = message.type, event = message.event, payload = message.payload, id = message.id;
-                    if (type === 'response') {
-                        requestResponseEmitter.emit(id, payload);
+                    type = message.type, payload = message.payload;
+                    if (type === 'emit') {
+                        _a = payload, event_1 = _a.event, data_1 = _a.data;
+                        eventsContainer.forEach(event_1, function (fn) { return fn(data_1); });
                         return [2 /*return*/];
                     }
-                    if (!(type === 'request' && process.send)) return [3 /*break*/, 2];
-                    return [4 /*yield*/, requestEventsContainer.get(event)[0](payload)];
+                    if (!(type === 'request')) return [3 /*break*/, 5];
+                    _b = payload, event_2 = _b.event, data = _b.data, id = _b.id;
+                    responsePayload = void 0;
+                    _e.label = 1;
                 case 1:
-                    response = _a.sent();
-                    process.send({ type: 'response', payload: response, id: id });
-                    return [2 /*return*/];
+                    _e.trys.push([1, 3, , 4]);
+                    _c = {
+                        isRejected: false
+                    };
+                    return [4 /*yield*/, requestEventsContainer.get(event_2)[0](data)];
                 case 2:
-                    if (type === 'emit') {
-                        eventsContainer.forEach(event, function (fn) { return fn(payload); });
+                    responsePayload = (_c.data = _e.sent(),
+                        _c.id = id,
+                        _c);
+                    return [3 /*break*/, 4];
+                case 3:
+                    error_1 = _e.sent();
+                    responsePayload = {
+                        isRejected: true,
+                        data: error_1 instanceof Error
+                            ? error_1.stack
+                            : error_1.toString(),
+                        id: id
+                    };
+                    return [3 /*break*/, 4];
+                case 4:
+                    process.send({ type: 'response', payload: responsePayload });
+                    _e.label = 5;
+                case 5:
+                    if (type === 'response') {
+                        _d = payload, isRejected = _d.isRejected, data = _d.data, id = _d.id;
+                        if (isRejected) {
+                            requestResolvers[id].reject(data);
+                            return [2 /*return*/];
+                        }
+                        requestResolvers[id].resolve(data);
                     }
                     return [2 /*return*/];
             }
