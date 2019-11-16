@@ -10,6 +10,10 @@ master.onRequest('test', async () => {
   return master.request('test')
 })
 
+master.on('throwRejection', async () => {
+  throw new Error(`Example rejection`)
+})
+
 master.on('ping', (once = false) => 
   once 
     ? master.emit('oncePong') 

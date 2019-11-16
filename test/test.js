@@ -29,6 +29,10 @@ describe('#request()', () => {
     chai.expect(result).to.equal(testRequestResult)
   })
 
+  it(`slave.request('throwRejection') should be rejected`, done => {
+    slave.request('throwRejection').should.be.rejected.and.notify(done)
+  })
+
   it(`slave.request('not_defined_fn', null, 0.5) should be rejected`, done => {
     slave.request('not_defined_fn', null, 0.5).should.be.rejected.and.notify(done)
   })
