@@ -86,11 +86,15 @@ if(isSlave){
     if(type === 'request'){
       const { event, data, id } = payload as RequestMessagePayload
 
+      const handler = requestEventsContainer.get(event)[0]
+      if(handler === undefined)
+        throw new Error(`Received not handled request from slave (${event})`)
+
       let responsePayload: ResponseMessagePayload 
       try {
         responsePayload = {
           isRejected: false,
-          data: await requestEventsContainer.get(event)[0](data),
+          data: await handler(data),
           id
         }
       } catch(error) {

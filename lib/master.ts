@@ -43,7 +43,7 @@ class Slave {
     } as EmitMessage)
   }
 
-  public request(event: string, data?: any, maximumTimeout: number = 10): Promise<any>{
+  public request<T>(event: string, data?: any, maximumTimeout: number = 10): Promise<T>{
     return new Promise((resolve, reject) => {
       const id = generateId()
 
@@ -101,11 +101,15 @@ class Slave {
     if(type === 'request'){
       const { event, data, id } = payload as RequestMessagePayload
 
+      const handler = this.requestEventsContainer.get(event)[0]
+      if(handler === undefined)
+        throw new Error(`Received not handled request from slave (${event})`)
+
       let responsePayload: ResponseMessagePayload 
       try {
         responsePayload = {
           isRejected: false,
-          data: await this.requestEventsContainer.get(event)[0](data),
+          data: await handler(data),
           id
         }
       } catch(error) {

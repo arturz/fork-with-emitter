@@ -1,3 +1,3 @@
-type Handler = (payload?: any) => any | Promise<any>
+type Handler = (payload?: any) => any
 
 export default Handler

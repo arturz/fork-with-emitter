@@ -5,17 +5,11 @@ Simple EventEmitter wrapper for IPC, enhanced with async .request().
 - TypeScript support.
 - Intuitive naming (master/slave).
 
-# Examples
+## Basics
 
-## Basic communication
-
-bot.js (slave):
+```bot.js``` (slave):
 ```javascript
 const { master } = require('fork-with-emitter')
-
-//returns promise that resolves after given ms
-const sleep = ms => 
-  new Promise(res => setTimeout(res, ms))
 
 master.on('hello', name => {
   console.log(`Hello ${name}`)
@@ -25,9 +19,13 @@ master.onRequest('getRandomNumber', async () => {
   await sleep(1000)
   return Math.floor(Math.random() * 1000)
 })
+
+//returns promise that resolves after given ms
+const sleep = ms => 
+  new Promise(res => setTimeout(res, ms))
 ```
 
-index.js (master):
+```index.js``` (master):
 ```javascript
 const { createSlave } = require('fork-with-emitter')
 
@@ -45,24 +43,24 @@ bot.emit('hello', 'Artur')
 })()
 ```
 
-Output:
+```Output:```
 ```shell
 Hello Artur
 623
 ```
 
-## Errors and rejections
+## Handling errors
 
-bot.js (slave):
+```bot.js``` (slave):
 ```javascript
 const { master } = require('fork-with-emitter')
 
-master.onRequest('throwRejection', async () => {
+master.onRequest('throwError', async () => {
   throw new Error(`Some error message`)
 })
 ```
 
-index.js (master):
+```index.js``` (master):
 ```javascript
 const { createSlave } = require('fork-with-emitter')
 
@@ -70,22 +68,22 @@ const bot = createSlave('bot.js')
 
 ;(async () => {
   try {
-    await bot.request('throwRejection')
+    await bot.request('throwError')
   } catch(error) {
     console.log(error)
   }
 })()
 ```
 
-Output:
+```Output:```
 ```shell
 Error: Some error message
     at (slave's stack)
 ```
 
-Errors and rejections are handled only from .onRequest() handlers.
+Errors and rejections are captured only from .onRequest() handlers.
 
-# Export
+# Exports
 ```javascript
 {
   /*
@@ -119,6 +117,7 @@ Errors and rejections are handled only from .onRequest() handlers.
       Returned/resolved data from async function will be passed to master's request.  
     */
     onRequest(event, listener),
+
     onceRequest(event, listener),
 
     removeRequestListener(event, listener),
@@ -126,6 +125,7 @@ Errors and rejections are handled only from .onRequest() handlers.
     /*
       Returns Promise that resolves with data resolved from master's .onRequest() listener.
       Rejects if response is not sent after 10 seconds.
+      maximumTimeout = Infinity -> for veery long tasks, not recommended though, because if task stucks and slave still works it will cause a memory leak.
     */
     request(event, listener, maximumTimeout = 10)
   },

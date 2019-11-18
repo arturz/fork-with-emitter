@@ -1,7 +1,7 @@
 import Handler from '../types/Handler'
 
 interface Events {
-  [event: string]: Function[]
+  [event: string]: Handler[]
 }
 
 export default class EventsContainer {
