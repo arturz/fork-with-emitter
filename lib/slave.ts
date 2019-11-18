@@ -88,7 +88,7 @@ if(isSlave){
 
       const handler = requestEventsContainer.get(event)[0]
       if(handler === undefined)
-        throw new Error(`Received not handled request from slave (${event})`)
+        throw new Error(`Received not handled request from master (${event})`)
 
       let responsePayload: ResponseMessagePayload 
       try {
