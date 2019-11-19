@@ -14,7 +14,7 @@ declare class Slave {
     constructor(fork: ChildProcess);
     private clearAfterExit;
     emit(event: string, data?: any): void;
-    request(event: string, data?: any, maximumTimeout?: number): Promise<any>;
+    request<T>(event: string, data?: any, maximumTimeout?: number): Promise<T>;
     kill(): void;
     private handleMessage;
 }

@@ -1,2 +1,2 @@
-declare type Handler = (payload?: any) => any | Promise<any>;
+declare type Handler = (payload?: any) => any;
 export default Handler;

@@ -4,6 +4,6 @@ export default class EventsContainer {
     readonly add: (event: string, handler: Handler) => void;
     readonly addOnce: (event: string, fn: Handler) => void;
     readonly delete: (event: string, handler: Handler) => void;
-    readonly get: (event: string) => Function[];
+    readonly get: (event: string) => Handler[];
     readonly forEach: (event: string, fn: Handler) => void;
 }

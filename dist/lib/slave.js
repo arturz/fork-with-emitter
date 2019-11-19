@@ -95,7 +95,7 @@ exports.master = {
 };
 if (exports.isSlave) {
     process.on('message', function (message) { return __awaiter(void 0, void 0, void 0, function () {
-        var type, payload, _a, event_1, data_1, _b, event_2, data, id, responsePayload, _c, error_1, _d, isRejected, data, id;
+        var type, payload, _a, event_1, data_1, _b, event_2, data, id, handler, responsePayload, _c, error_1, _d, isRejected, data, id;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
@@ -109,6 +109,9 @@ if (exports.isSlave) {
                     }
                     if (!(type === 'request')) return [3 /*break*/, 5];
                     _b = payload, event_2 = _b.event, data = _b.data, id = _b.id;
+                    handler = requestEventsContainer.get(event_2)[0];
+                    if (handler === undefined)
+                        throw new Error("Received not handled request from master (" + event_2 + ")");
                     responsePayload = void 0;
                     _e.label = 1;
                 case 1:
@@ -116,7 +119,7 @@ if (exports.isSlave) {
                     _c = {
                         isRejected: false
                     };
-                    return [4 /*yield*/, requestEventsContainer.get(event_2)[0](data)];
+                    return [4 /*yield*/, handler(data)];
                 case 2:
                     responsePayload = (_c.data = _e.sent(),
                         _c.id = id,
