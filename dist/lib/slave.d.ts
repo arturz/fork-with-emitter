@@ -7,5 +7,5 @@ export declare const master: {
     onceRequest: (event: string, fn: import("./types/Handler").default) => void;
     removeRequestListener: (event: string, handler: import("./types/Handler").default) => void;
     emit(event: string, data?: any): void;
-    request(event: string, data?: any, maximumTimeout?: number): Promise<unknown>;
+    request<T>(event: string, data?: any, maximumTimeout?: number): Promise<T>;
 };

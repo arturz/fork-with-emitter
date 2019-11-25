@@ -27,7 +27,7 @@ export const master = {
     } as EmitMessage)
   },
 
-  request(event: string, data?: any, maximumTimeout: number = 10){
+  request<T>(event: string, data?: any, maximumTimeout: number = 10): Promise<T>{
     return new Promise((resolve, reject) => {
       if(!process.send)
         return
@@ -52,7 +52,7 @@ export const master = {
         reject(error)
       }
 
-      requestResolvers[id] = { resolve: clearAndResolve, reject: clearAndResolve }
+      requestResolvers[id] = { resolve: clearAndResolve, reject: clearAndReject }
 
       process.send({
         type: 'request',

@@ -78,7 +78,7 @@ exports.master = {
                 clear();
                 reject(error);
             };
-            requestResolvers[id] = { resolve: clearAndResolve, reject: clearAndResolve };
+            requestResolvers[id] = { resolve: clearAndResolve, reject: clearAndReject };
             process.send({
                 type: 'request',
                 payload: { event: event, data: data, id: id }

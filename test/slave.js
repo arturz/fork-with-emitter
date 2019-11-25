@@ -10,7 +10,7 @@ master.onRequest('test', async () => {
   return master.request('test')
 })
 
-master.on('throwRejection', async () => {
+master.onRequest('throwRejection', async () => {
   throw new Error(`Example rejection`)
 })
 
