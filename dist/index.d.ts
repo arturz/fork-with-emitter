@@ -1,2 +1,2 @@
 export { isSlave, master } from './lib/slave';
-export { createSlave } from './lib/master';
+export { createSlave, Slave } from './lib/master';

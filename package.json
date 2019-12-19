@@ -1,6 +1,6 @@
 {
   "name": "fork-with-emitter",
-  "version": "2.2.5",
+  "version": "2.3.1",
   "description": "Simple EventEmitter wrapper for IPC, enhanced with async .request(). ",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

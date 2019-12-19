@@ -5,3 +5,4 @@ exports.isSlave = slave_1.isSlave;
 exports.master = slave_1.master;
 var master_1 = require("./lib/master");
 exports.createSlave = master_1.createSlave;
+exports.Slave = master_1.Slave;

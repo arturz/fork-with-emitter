@@ -7,7 +7,7 @@ import EventsContainer from './utils/EventsContainer'
 import RequestResolvers from './types/RequestResolvers'
 import Message, { EmitMessage, EmitMessagePayload, RequestMessage, RequestMessagePayload, ResponseMessage, ResponseMessagePayload } from './types/Message'
 
-class Slave {
+export class Slave {
   private eventsContainer = new EventsContainer
   private requestEventsContainer = new EventsContainer
   

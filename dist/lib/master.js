@@ -181,6 +181,7 @@ var Slave = /** @class */ (function () {
     };
     return Slave;
 }());
+exports.Slave = Slave;
 exports.createSlave = function (modulePath, options) {
     if (options === void 0) { options = {}; }
     options.stdio = options.stdio || [undefined, undefined, undefined, 'ipc'];

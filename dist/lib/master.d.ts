@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { ForkOptions, ChildProcess } from 'child_process';
-declare class Slave {
+export declare class Slave {
     readonly fork: ChildProcess;
     private eventsContainer;
     private requestEventsContainer;
