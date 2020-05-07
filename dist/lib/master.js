@@ -191,8 +191,5 @@ exports.createSlave = function (modulePath, options) {
             throw error;
     });
     var forked = child_process_1.fork(modulePath, options.args || [], options);
-    forked.on('error', function (error) {
-        throw error;
-    });
     return new Slave(forked);
 };

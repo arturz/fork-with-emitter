@@ -152,8 +152,5 @@ export const createSlave = (modulePath: string, options: Options = {}) => {
   })
 
   const forked = fork(modulePath, options.args || [], options)
-  forked.on('error', error => {
-    throw error
-  })
   return new Slave(forked)
 }
