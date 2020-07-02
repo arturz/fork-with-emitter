@@ -1,4 +1,4 @@
-# fork-with-emitter [![Build Status](https://travis-ci.com/xout/fork-with-emitter.svg?branch=master)](https://travis-ci.org/xout/fork-with-emitter)
+# fork-with-emitter [![Build Status](https://travis-ci.org/arturz/fork-with-emitter.svg?branch=master)](https://travis-ci.org/xout/fork-with-emitter)
 
 Simple EventEmitter wrapper for IPC, enhanced with async .request(). 
 - Zero dependencies.
