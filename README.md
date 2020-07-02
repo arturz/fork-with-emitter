@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 # fork-with-emitter [![Build Status](https://travis-ci.org/arturz/fork-with-emitter.svg?branch=master)](https://travis-ci.org/arturz/fork-with-emitter.svg?branch=master)
-=======
-# fork-with-emitter [![Build Status](https://travis-ci.org/arturz/fork-with-emitter.svg?branch=master)](https://travis-ci.org/xout/fork-with-emitter)
->>>>>>> 6a760883a98d1fe12b631af928c63b39e1cf744a
 
 Simple EventEmitter wrapper for IPC, enhanced with async .request(). 
 - Zero dependencies.
