@@ -3,19 +3,19 @@
 Simple EventEmitter wrapper for IPC, enhanced with async .request(). 
 - Zero dependencies.
 - TypeScript support.
-- Intuitive naming (master/slave).
+- Intuitive naming (fork/host).
 
 ## Basics
 
-```bot.js``` (slave):
+```bot.js``` (fork):
 ```javascript
-const { master } = require('fork-with-emitter')
+const { host } = require('fork-with-emitter')
 
-master.on('hello', name => {
+host.on('hello', name => {
   console.log(`Hello ${name}`)
 })
 
-master.onRequest('getRandomNumber', async () => {
+host.onRequest('getRandomNumber', async () => {
   await sleep(1000)
   return Math.floor(Math.random() * 1000)
 })
@@ -25,21 +25,21 @@ const sleep = ms =>
   new Promise(res => setTimeout(res, ms))
 ```
 
-```index.js``` (master):
+```index.js``` (host):
 ```javascript
-const { createSlave } = require('fork-with-emitter')
+const { createFork } = require('fork-with-emitter')
 
-const bot = createSlave('bot.js')
-//pipe bot's console.log to master's console.log
-bot.fork.stdout.pipe(process.stdout)
+const fork = createFork('bot.js')
+//pipe fork's console.log to host's console.log
+fork.process.stdout.pipe(process.stdout)
 
-bot.emit('hello', 'Artur')
+fork.emit('hello', 'Artur')
 
 ;(async () => {
-  const randomNumber = await bot.request('getRandomNumber')
+  const randomNumber = await fork.request('getRandomNumber')
   console.log(randomNumber)
 
-  bot.kill()
+  fork.kill()
 })()
 ```
 
@@ -51,24 +51,24 @@ Hello Artur
 
 ## Handling errors
 
-```bot.js``` (slave):
+```bot.js``` (fork):
 ```javascript
-const { master } = require('fork-with-emitter')
+const { host } = require('fork-with-emitter')
 
-master.onRequest('throwError', async () => {
+host.onRequest('throwError', async () => {
   throw new Error(`Some error message`)
 })
 ```
 
-```index.js``` (master):
+```index.js``` (host):
 ```javascript
-const { createSlave } = require('fork-with-emitter')
+const { createFork } = require('fork-with-emitter')
 
-const bot = createSlave('bot.js')
+const fork = createFork('bot.js')
 
 ;(async () => {
   try {
-    await bot.request('throwError')
+    await fork.request('throwError')
   } catch(error) {
     console.log(error)
   }
@@ -78,7 +78,7 @@ const bot = createSlave('bot.js')
 ```Output:```
 ```shell
 Error: Some error message
-    at (slave's stack)
+    at (fork's stack)
 ```
 
 Errors and rejections are captured only from .onRequest() handlers.
@@ -87,15 +87,19 @@ Errors and rejections are captured only from .onRequest() handlers.
 ```javascript
 {
   /*
-    Returns new Slave object.
-    same as fork(modulePath, args, options)
+    Returns new spawned fork.
   */
-  createSlave(modulePath, options = { args: [] }),
+  createFork(modulePath, options = { args: [] }),
 
   /*
-    Points to master.
+    Variable indicating if process is a fork. 
   */
-  master: {
+  isForked,
+
+  /*
+    Points to host (use those methods from fork).
+  */
+  host: {
     /*
       process.on('message', listener) with events
     */
@@ -114,7 +118,7 @@ Errors and rejections are captured only from .onRequest() handlers.
     emit(event, listener),
 
     /*
-      Returned/resolved data from async function will be passed to master's request.  
+      Returned/resolved data from async function will be passed to host's request.  
     */
     onRequest(event, listener),
 
@@ -123,38 +127,30 @@ Errors and rejections are captured only from .onRequest() handlers.
     removeRequestListener(event, listener),
 
     /*
-      Returns Promise that resolves with data resolved from master's .onRequest() listener.
+      Returns Promise that resolves with data resolved from host's .onRequest() listener.
       Rejects if response is not sent after 10 seconds.
-      maximumTimeout = Infinity -> for veery long tasks, not recommended though, because if task stucks and slave still works it will cause a memory leak.
+      maximumTimeout = Infinity -> for very long tasks, not recommended though, because if task stucks and fork still works it causes a memory leak.
     */
     request(event, listener, maximumTimeout = 10)
-  },
-
-  /*
-    Is true when process is slave/was forked, otherwise is false.
-    Same as process.send === 'function'
-  */
-  isSlave
+  }
 }
 ```
 
-## Slave object
+## Fork object
+Object that points to spawned fork.
 
 ```javascript
 {
   /*
     Native ChildProcess object.
   */
-  fork = ChildProcess,
+  process,
 
   /*
     Exits process with SIGINT.
   */
   kill(),
 
-  /*
-    Same as exported 'master' methods, but points to slave instead of master.
-  */
   on(event, listener),
   once(event, listener),
   removeListener(event, listener),
@@ -165,3 +161,6 @@ Errors and rejections are captured only from .onRequest() handlers.
   request(event, listener, maximumTimeout = 10)
 }
 ```
+
+# License
+MIT

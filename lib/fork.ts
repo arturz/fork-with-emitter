@@ -3,13 +3,13 @@ import EventsContainer from './utils/EventsContainer'
 import RequestResolvers from './types/RequestResolvers'
 import Message, { EmitMessage, EmitMessagePayload, RequestMessage, RequestMessagePayload, ResponseMessage, ResponseMessagePayload } from './types/Message'
 
-export const isSlave = typeof process.send === 'function'
+export const isFork = typeof process.send === 'function'
 
 const eventsContainer = new EventsContainer
 const requestEventsContainer = new EventsContainer
 const requestResolvers: RequestResolvers = Object.create(null)
 
-export const master = {
+export const host = {
   on: eventsContainer.add,
   once: eventsContainer.addOnce,
   removeListener: eventsContainer.delete,
@@ -66,12 +66,12 @@ export const master = {
       if(maximumTimeout === Infinity)
         return
 
-      let timeout: NodeJS.Timeout | null = setTimeout(() => clearAndReject(`Request ${event} was not handled by master`), maximumTimeout*1000)
+      let timeout: NodeJS.Timeout | null = setTimeout(() => clearAndReject(`Request ${event} was not handled by host`), maximumTimeout*1000)
     })
   }
 }
 
-if(isSlave){
+if(isFork){
   process.on('message', async (message: Message) => {
     if(typeof message !== 'object' || !process.send)
       return
@@ -88,7 +88,7 @@ if(isSlave){
 
       const handler = requestEventsContainer.get(event)[0]
       if(handler === undefined)
-        throw new Error(`Received not handled request from master (${event})`)
+        throw new Error(`Received not handled request from host (${event})`)
 
       let responsePayload: ResponseMessagePayload 
       try {

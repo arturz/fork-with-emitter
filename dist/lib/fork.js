@@ -38,11 +38,11 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var generateId_1 = require("./utils/generateId");
 var EventsContainer_1 = require("./utils/EventsContainer");
-exports.isSlave = typeof process.send === 'function';
+exports.isFork = typeof process.send === 'function';
 var eventsContainer = new EventsContainer_1.default;
 var requestEventsContainer = new EventsContainer_1.default;
 var requestResolvers = Object.create(null);
-exports.master = {
+exports.host = {
     on: eventsContainer.add,
     once: eventsContainer.addOnce,
     removeListener: eventsContainer.delete,
@@ -89,11 +89,11 @@ exports.master = {
             */
             if (maximumTimeout === Infinity)
                 return;
-            var timeout = setTimeout(function () { return clearAndReject("Request " + event + " was not handled by master"); }, maximumTimeout * 1000);
+            var timeout = setTimeout(function () { return clearAndReject("Request " + event + " was not handled by host"); }, maximumTimeout * 1000);
         });
     }
 };
-if (exports.isSlave) {
+if (exports.isFork) {
     process.on('message', function (message) { return __awaiter(void 0, void 0, void 0, function () {
         var type, payload, _a, event_1, data_1, _b, event_2, data, id, handler, responsePayload, _c, error_1, _d, isRejected, data, id;
         return __generator(this, function (_e) {
@@ -111,7 +111,7 @@ if (exports.isSlave) {
                     _b = payload, event_2 = _b.event, data = _b.data, id = _b.id;
                     handler = requestEventsContainer.get(event_2)[0];
                     if (handler === undefined)
-                        throw new Error("Received not handled request from master (" + event_2 + ")");
+                        throw new Error("Received not handled request from host (" + event_2 + ")");
                     responsePayload = void 0;
                     _e.label = 1;
                 case 1:

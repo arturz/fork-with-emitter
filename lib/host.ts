@@ -7,7 +7,7 @@ import EventsContainer from './utils/EventsContainer'
 import RequestResolvers from './types/RequestResolvers'
 import Message, { EmitMessage, EmitMessagePayload, RequestMessage, RequestMessagePayload, ResponseMessage, ResponseMessagePayload } from './types/Message'
 
-export class Slave {
+export class Fork {
   private eventsContainer = new EventsContainer
   private requestEventsContainer = new EventsContainer
   
@@ -21,23 +21,23 @@ export class Slave {
   public readonly onceRequest = this.requestEventsContainer.addOnce
   public readonly removeRequestListener = this.requestEventsContainer.delete
 
-  constructor(public readonly fork: ChildProcess){
-    this.fork.on('message', this.handleMessage)
+  constructor(public readonly process: ChildProcess){
+    this.process.on('message', this.handleMessage)
     this.clearAfterExit()
   }
 
   private async clearAfterExit(){
-    await waitForExit(this.fork)
+    await waitForExit(this.process)
     this.eventsContainer = new EventsContainer
     this.requestEventsContainer = new EventsContainer
 
     //reject every request
-    Object.values(this.requestResolvers).forEach(({ reject }) => reject(`Slave fork was killed`))
+    Object.values(this.requestResolvers).forEach(({ reject }) => reject(`Fork was killed`))
     this.requestResolvers = Object.create(null)
   }
 
   public emit(event: string, data?: any){
-    this.fork.send({
+    this.process.send({
       type: 'emit',
       payload: { event, data }
     } as EmitMessage)
@@ -67,7 +67,7 @@ export class Slave {
 
       this.requestResolvers[id] = { resolve: clearAndResolve, reject: clearAndReject }
 
-      this.fork.send({
+      this.process.send({
         type: 'request',
         payload: { event, data, id }
       } as RequestMessage)
@@ -79,12 +79,12 @@ export class Slave {
       if(maximumTimeout === Infinity)
         return
 
-      let timeout: NodeJS.Timeout | null = setTimeout(() => clearAndReject(`Request ${event} was not handled by slave`), maximumTimeout*1000)
+      let timeout: NodeJS.Timeout | null = setTimeout(() => clearAndReject(`Request ${event} was not handled by fork`), maximumTimeout*1000)
     })
   }
 
   public kill(){
-    this.fork.kill('SIGINT')
+    this.process.kill('SIGINT')
   }
 
   private handleMessage = async (message: Message) => {
@@ -103,7 +103,7 @@ export class Slave {
 
       const handler = this.requestEventsContainer.get(event)[0]
       if(handler === undefined)
-        throw new Error(`Received not handled request from slave (${event})`)
+        throw new Error(`Received not handled request from fork (${event})`)
 
       let responsePayload: ResponseMessagePayload 
       try {
@@ -122,7 +122,7 @@ export class Slave {
         }
       }
 
-      this.fork.send({ type: 'response', payload: responsePayload } as ResponseMessage)
+      this.process.send({ type: 'response', payload: responsePayload } as ResponseMessage)
     }
 
     if(type === 'response'){
@@ -142,7 +142,7 @@ type Options = ForkOptions & {
   args?: string[]
 }
 
-export const createSlave = (modulePath: string, options: Options = {}) => {
+export const createFork = (modulePath: string, options: Options = {}) => {
   options.stdio = options.stdio || [undefined, undefined, undefined, 'ipc']
 
   //throw error if file does not exist
@@ -152,5 +152,5 @@ export const createSlave = (modulePath: string, options: Options = {}) => {
   })
 
   const forked = fork(modulePath, options.args || [], options)
-  return new Slave(forked)
+  return new Fork(forked)
 }

@@ -1,5 +1,5 @@
-export declare const isSlave: boolean;
-export declare const master: {
+export declare const isFork: boolean;
+export declare const host: {
     on: (event: string, handler: import("./types/Handler").default) => void;
     once: (event: string, fn: import("./types/Handler").default) => void;
     removeListener: (event: string, handler: import("./types/Handler").default) => void;

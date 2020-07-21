@@ -42,10 +42,10 @@ var path_1 = require("path");
 var generateId_1 = require("./utils/generateId");
 var waitForExit_1 = require("./utils/waitForExit");
 var EventsContainer_1 = require("./utils/EventsContainer");
-var Slave = /** @class */ (function () {
-    function Slave(fork) {
+var Fork = /** @class */ (function () {
+    function Fork(process) {
         var _this = this;
-        this.fork = fork;
+        this.process = process;
         this.eventsContainer = new EventsContainer_1.default;
         this.requestEventsContainer = new EventsContainer_1.default;
         //if process exits, every request's pending Promise will be rejected
@@ -73,7 +73,7 @@ var Slave = /** @class */ (function () {
                         _b = payload, event_2 = _b.event, data = _b.data, id = _b.id;
                         handler = this.requestEventsContainer.get(event_2)[0];
                         if (handler === undefined)
-                            throw new Error("Received not handled request from slave (" + event_2 + ")");
+                            throw new Error("Received not handled request from fork (" + event_2 + ")");
                         responsePayload = void 0;
                         _e.label = 1;
                     case 1:
@@ -98,7 +98,7 @@ var Slave = /** @class */ (function () {
                         };
                         return [3 /*break*/, 4];
                     case 4:
-                        this.fork.send({ type: 'response', payload: responsePayload });
+                        this.process.send({ type: 'response', payload: responsePayload });
                         _e.label = 5;
                     case 5:
                         if (type === 'response') {
@@ -113,14 +113,14 @@ var Slave = /** @class */ (function () {
                 }
             });
         }); };
-        this.fork.on('message', this.handleMessage);
+        this.process.on('message', this.handleMessage);
         this.clearAfterExit();
     }
-    Slave.prototype.clearAfterExit = function () {
+    Fork.prototype.clearAfterExit = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, waitForExit_1.default(this.fork)];
+                    case 0: return [4 /*yield*/, waitForExit_1.default(this.process)];
                     case 1:
                         _a.sent();
                         this.eventsContainer = new EventsContainer_1.default;
@@ -128,7 +128,7 @@ var Slave = /** @class */ (function () {
                         //reject every request
                         Object.values(this.requestResolvers).forEach(function (_a) {
                             var reject = _a.reject;
-                            return reject("Slave fork was killed");
+                            return reject("Fork was killed");
                         });
                         this.requestResolvers = Object.create(null);
                         return [2 /*return*/];
@@ -136,13 +136,13 @@ var Slave = /** @class */ (function () {
             });
         });
     };
-    Slave.prototype.emit = function (event, data) {
-        this.fork.send({
+    Fork.prototype.emit = function (event, data) {
+        this.process.send({
             type: 'emit',
             payload: { event: event, data: data }
         });
     };
-    Slave.prototype.request = function (event, data, maximumTimeout) {
+    Fork.prototype.request = function (event, data, maximumTimeout) {
         var _this = this;
         if (maximumTimeout === void 0) { maximumTimeout = 10; }
         return new Promise(function (resolve, reject) {
@@ -163,7 +163,7 @@ var Slave = /** @class */ (function () {
                 reject(error);
             };
             _this.requestResolvers[id] = { resolve: clearAndResolve, reject: clearAndReject };
-            _this.fork.send({
+            _this.process.send({
                 type: 'request',
                 payload: { event: event, data: data, id: id }
             });
@@ -173,16 +173,16 @@ var Slave = /** @class */ (function () {
             */
             if (maximumTimeout === Infinity)
                 return;
-            var timeout = setTimeout(function () { return clearAndReject("Request " + event + " was not handled by slave"); }, maximumTimeout * 1000);
+            var timeout = setTimeout(function () { return clearAndReject("Request " + event + " was not handled by fork"); }, maximumTimeout * 1000);
         });
     };
-    Slave.prototype.kill = function () {
-        this.fork.kill('SIGINT');
+    Fork.prototype.kill = function () {
+        this.process.kill('SIGINT');
     };
-    return Slave;
+    return Fork;
 }());
-exports.Slave = Slave;
-exports.createSlave = function (modulePath, options) {
+exports.Fork = Fork;
+exports.createFork = function (modulePath, options) {
     if (options === void 0) { options = {}; }
     options.stdio = options.stdio || [undefined, undefined, undefined, 'ipc'];
     //throw error if file does not exist
@@ -191,5 +191,5 @@ exports.createSlave = function (modulePath, options) {
             throw error;
     });
     var forked = child_process_1.fork(modulePath, options.args || [], options);
-    return new Slave(forked);
+    return new Fork(forked);
 };

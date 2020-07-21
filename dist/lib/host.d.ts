@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { ForkOptions, ChildProcess } from 'child_process';
-export declare class Slave {
-    readonly fork: ChildProcess;
+export declare class Fork {
+    readonly process: ChildProcess;
     private eventsContainer;
     private requestEventsContainer;
     private requestResolvers;
@@ -11,7 +11,7 @@ export declare class Slave {
     readonly onRequest: (event: string, handler: import("./types/Handler").default) => void;
     readonly onceRequest: (event: string, fn: import("./types/Handler").default) => void;
     readonly removeRequestListener: (event: string, handler: import("./types/Handler").default) => void;
-    constructor(fork: ChildProcess);
+    constructor(process: ChildProcess);
     private clearAfterExit;
     emit(event: string, data?: any): void;
     request<T>(event: string, data?: any, maximumTimeout?: number): Promise<T>;
@@ -21,5 +21,5 @@ export declare class Slave {
 declare type Options = ForkOptions & {
     args?: string[];
 };
-export declare const createSlave: (modulePath: string, options?: Options) => Slave;
+export declare const createFork: (modulePath: string, options?: Options) => Fork;
 export {};

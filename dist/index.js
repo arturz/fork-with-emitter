@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var slave_1 = require("./lib/slave");
-exports.isSlave = slave_1.isSlave;
-exports.master = slave_1.master;
-var master_1 = require("./lib/master");
-exports.createSlave = master_1.createSlave;
-exports.Slave = master_1.Slave;
+var fork_1 = require("./lib/fork");
+exports.isFork = fork_1.isFork;
+exports.host = fork_1.host;
+var host_1 = require("./lib/host");
+exports.createFork = host_1.createFork;
+exports.Fork = host_1.Fork;

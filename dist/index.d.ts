@@ -1,2 +1,2 @@
-export { isSlave, master } from './lib/slave';
-export { createSlave, Slave } from './lib/master';
+export { isFork, host } from './lib/fork';
+export { createFork, Fork } from './lib/host';
