@@ -1,49 +1,51 @@
-# fork-with-emitter [![Build Status](https://travis-ci.org/arturz/fork-with-emitter.svg?branch=master)](https://travis-ci.org/arturz/fork-with-emitter.svg?branch=master)
+# fork-with-emitter ![Downloads count](https://img.shields.io/npm/dt/fork-with-emitter) [![Build Status](https://travis-ci.org/arturz/fork-with-emitter.svg?branch=master)](https://travis-ci.org/arturz/fork-with-emitter.svg?branch=master) ![Zero dependencies](https://status.david-dm.org/gh/arturz/fork-with-emitter.svg)
 
-Simple EventEmitter wrapper for IPC, enhanced with async .request(). 
+Simple EventEmitter wrapper for IPC, enhanced with async .request().
+
 - Zero dependencies.
 - TypeScript support.
 - Intuitive naming (fork/host).
 
 ## Basics
 
-```bot.js``` (fork):
+`bot.js` (fork):
+
 ```javascript
-const { host } = require('fork-with-emitter')
+import { host } from "fork-with-emitter";
 
-host.on('hello', name => {
-  console.log(`Hello ${name}`)
-})
+host.on("hello", (name) => {
+  console.log(`Hello ${name}`);
+});
 
-host.onRequest('getRandomNumber', async () => {
-  await sleep(1000)
-  return Math.floor(Math.random() * 1000)
-})
+host.onRequest("getRandomNumber", async () => {
+  await sleep(1000);
+  return Math.floor(Math.random() * 1000);
+});
 
 //returns promise that resolves after given ms
-const sleep = ms => 
-  new Promise(res => setTimeout(res, ms))
+const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 ```
 
-```index.js``` (host):
+`index.js` (host):
+
 ```javascript
-const { createFork } = require('fork-with-emitter')
+import { createFork } from "fork-with-emitter";
 
-const fork = createFork('bot.js')
+const fork = createFork("bot.js");
 //pipe fork's console.log to host's console.log
-fork.process.stdout.pipe(process.stdout)
+fork.process.stdout.pipe(process.stdout);
 
-fork.emit('hello', 'Artur')
+fork.emit("hello", "Artur");
+(async () => {
+  const randomNumber = await fork.request("getRandomNumber");
+  console.log(randomNumber);
 
-;(async () => {
-  const randomNumber = await fork.request('getRandomNumber')
-  console.log(randomNumber)
-
-  fork.kill()
-})()
+  fork.kill();
+})();
 ```
 
-```Output:```
+`Output:`
+
 ```shell
 Hello Artur
 623
@@ -51,31 +53,34 @@ Hello Artur
 
 ## Handling errors
 
-```bot.js``` (fork):
-```javascript
-const { host } = require('fork-with-emitter')
+`bot.js` (fork):
 
-host.onRequest('throwError', async () => {
-  throw new Error(`Some error message`)
-})
+```javascript
+import { host } from "fork-with-emitter";
+
+host.onRequest("throwError", async () => {
+  throw new Error(`Some error message`);
+});
 ```
 
-```index.js``` (host):
+`index.js` (host):
+
 ```javascript
-const { createFork } = require('fork-with-emitter')
+import { createFork } from "fork-with-emitter";
 
-const fork = createFork('bot.js')
+const fork = createFork("bot.js");
 
-;(async () => {
+(async () => {
   try {
-    await fork.request('throwError')
-  } catch(error) {
-    console.log(error)
+    await fork.request("throwError");
+  } catch (error) {
+    console.log(error);
   }
-})()
+})();
 ```
 
-```Output:```
+`Output:`
+
 ```shell
 Error: Some error message
     at (fork's stack)
@@ -84,6 +89,7 @@ Error: Some error message
 Errors and rejections are captured only from .onRequest() handlers.
 
 # Exports
+
 ```javascript
 {
   /*
@@ -92,7 +98,7 @@ Errors and rejections are captured only from .onRequest() handlers.
   createFork(modulePath, options = { args: [] }),
 
   /*
-    Variable indicating if process is a fork. 
+    Variable indicating if process is a fork.
   */
   isForked,
 
@@ -118,7 +124,7 @@ Errors and rejections are captured only from .onRequest() handlers.
     emit(event, listener),
 
     /*
-      Returned/resolved data from async function will be passed to host's request.  
+      Returned/resolved data from async function will be passed to host's request.
     */
     onRequest(event, listener),
 
@@ -137,6 +143,7 @@ Errors and rejections are captured only from .onRequest() handlers.
 ```
 
 ## Fork object
+
 Object that points to spawned fork.
 
 ```javascript
@@ -145,22 +152,21 @@ Object that points to spawned fork.
     Native ChildProcess object.
   */
   process,
-
-  /*
+    /*
     Exits process with SIGINT.
   */
-  kill(),
-
-  on(event, listener),
-  once(event, listener),
-  removeListener(event, listener),
-  emit(event, listener),
-  onRequest(event, listener),
-  onceRequest(event, listener),
-  removeRequestListener(event, listener),
-  request(event, listener, maximumTimeout = 10)
+    kill(),
+    on(event, listener),
+    once(event, listener),
+    removeListener(event, listener),
+    emit(event, listener),
+    onRequest(event, listener),
+    onceRequest(event, listener),
+    removeRequestListener(event, listener),
+    request(event, listener, (maximumTimeout = 10));
 }
 ```
 
 # License
+
 MIT
